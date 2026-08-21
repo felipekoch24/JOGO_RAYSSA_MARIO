@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Jogo da Rayssa</title>
+    <title>Rayssa Bros - Completo</title>
     <style>
         * { touch-action: manipulation; -webkit-user-select: none; user-select: none; }
         body { margin: 0; background: #111; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; font-family: sans-serif; }
@@ -48,13 +48,15 @@
     const faseTexto = document.getElementById("faseTexto");
 
     const imgRayssa = new Image();
-    const imgInimigo = new Image(); imgInimigo.src = "inimigo.png";
+    const imgInimigoComum = new Image(); imgInimigoComum.src = "inimigo.png";
+    const imgInimigoNovo = new Image(); imgInimigoNovo.src = "inimigo1.png";
+    const imgChefe = new Image(); imgChefe.src = "viloes.png";
     const imgBatata = new Image(); imgBatata.src = "batata.png";
     const imgFundo = new Image();
 
     let faseAtual = 1;
-    const totalFases = 3; 
-    let jogoVencido = false;
+    const totalFases = 6; 
+    let estadoJogo = "jogando"; // "jogando", "transicao", "vitoria"
 
     let player = { 
         x: 50, y: 300, 
@@ -69,56 +71,82 @@
 
     const fases = {
         1: { 
-            fundo: "fundo1.png",
+            fundo: "fundo.png",
             plataformas: [
-                { x: 0, y: 470, width: 280, height: 80 },
-                { x: 360, y: 470, width: 250, height: 80 },
-                { x: 680, y: 470, width: 220, height: 80 },
-                { x: 220, y: 340, width: 150, height: 20 },
-                { x: 480, y: 250, width: 160, height: 20 }
+                { x: 0, y: 470, width: 280, height: 80 }, { x: 360, y: 470, width: 250, height: 80 }, { x: 680, y: 470, width: 220, height: 80 },
+                { x: 220, y: 340, width: 150, height: 20 }, { x: 480, y: 250, width: 160, height: 20 }
             ], 
             inimigos: [
-                { x: 380, y: 395, width: 60, height: 75, dir: 2, minX: 360, maxX: 580, vivo: true },
-                { x: 500, y: 195, width: 60, height: 75, dir: -2, minX: 480, maxX: 620, vivo: true }
+                { x: 380, y: 395, width: 60, height: 75, dir: 2, minX: 360, maxX: 580, vivo: true, img: "comum" },
+                { x: 500, y: 195, width: 60, height: 75, dir: -2, minX: 480, maxX: 620, vivo: true, img: "comum" }
             ],
             batatas: [{ x: 400, y: 200, visivel: true }],
             metaX: 830, metaY: 390, startX: 50, startY: 300 
         },
         2: { 
-            fundo: "fundo2.png",
+            fundo: "fundo.png",
             plataformas: [
-                { x: 0, y: 470, width: 220, height: 80 },
-                { x: 280, y: 470, width: 200, height: 80 },
-                { x: 540, y: 470, width: 360, height: 80 },
-                { x: 220, y: 360, width: 130, height: 20 },
-                { x: 420, y: 280, width: 130, height: 20 },
-                { x: 650, y: 200, width: 150, height: 20 }
+                { x: 0, y: 470, width: 220, height: 80 }, { x: 280, y: 470, width: 200, height: 80 }, { x: 540, y: 470, width: 360, height: 80 },
+                { x: 220, y: 360, width: 130, height: 20 }, { x: 420, y: 280, width: 130, height: 20 }, { x: 650, y: 200, width: 150, height: 20 }
             ], 
             inimigos: [
-                { x: 300, y: 395, width: 60, height: 75, dir: 2.5, minX: 280, maxX: 440, vivo: true },
-                { x: 680, y: 125, width: 60, height: 75, dir: -2.5, minX: 650, maxX: 780, vivo: true }
+                { x: 300, y: 395, width: 60, height: 75, dir: 2.5, minX: 280, maxX: 440, vivo: true, img: "comum" },
+                { x: 680, y: 125, width: 60, height: 75, dir: -2.5, minX: 650, maxX: 780, vivo: true, img: "comum" }
             ],
             batatas: [{ x: 700, y: 150, visivel: true }],
             metaX: 810, metaY: 390, startX: 50, startY: 300 
         },
         3: { 
-            fundo: "fundo3.png",
+            fundo: "fundo.png",
             plataformas: [
-                { x: 0, y: 470, width: 170, height: 80 },
-                { x: 230, y: 470, width: 170, height: 80 },
-                { x: 460, y: 470, width: 170, height: 80 },
-                { x: 690, y: 470, width: 210, height: 80 },
-                { x: 180, y: 370, width: 100, height: 20 },
-                { x: 360, y: 290, width: 100, height: 20 },
-                { x: 550, y: 210, width: 100, height: 20 }
+                { x: 0, y: 470, width: 170, height: 80 }, { x: 230, y: 470, width: 170, height: 80 }, { x: 460, y: 470, width: 170, height: 80 }, { x: 690, y: 470, width: 210, height: 80 },
+                { x: 180, y: 370, width: 100, height: 20 }, { x: 360, y: 290, width: 100, height: 20 }, { x: 550, y: 210, width: 100, height: 20 }
             ], 
             inimigos: [
-                { x: 240, y: 395, width: 60, height: 75, dir: 2, minX: 230, maxX: 360, vivo: true },
-                { x: 380, y: 215, width: 60, height: 75, dir: -2, minX: 360, maxX: 440, vivo: true },
-                { x: 570, y: 135, width: 60, height: 75, dir: 3, minX: 550, maxX: 630, vivo: true }
+                { x: 240, y: 395, width: 60, height: 75, dir: 2, minX: 230, maxX: 360, vivo: true, img: "comum" },
+                { x: 380, y: 215, width: 60, height: 75, dir: -2, minX: 360, maxX: 440, vivo: true, img: "comum" }
             ],
             batatas: [{ x: 200, y: 300, visivel: true }],
             metaX: 820, metaY: 390, startX: 50, startY: 300 
+        },
+        4: { // Fase nova com o inimigo novo (inimigo1.png)
+            fundo: "fundo.png",
+            plataformas: [
+                { x: 0, y: 470, width: 300, height: 80 }, { x: 380, y: 470, width: 520, height: 80 },
+                { x: 150, y: 350, width: 120, height: 20 }, { x: 400, y: 260, width: 140, height: 20 }, { x: 680, y: 180, width: 150, height: 20 }
+            ],
+            inimigos: [
+                { x: 420, y: 395, width: 65, height: 75, dir: 3, minX: 380, maxX: 850, vivo: true, img: "novo" },
+                { x: 420, y: 185, width: 65, height: 75, dir: -2, minX: 400, maxX: 520, vivo: true, img: "novo" }
+            ],
+            batatas: [{ x: 450, y: 210, visivel: true }],
+            metaX: 830, metaY: 390, startX: 50, startY: 300
+        },
+        5: { // Fase 5 cheia de obstáculos e inimigos novos
+            fundo: "fundo.png",
+            plataformas: [
+                { x: 0, y: 470, width: 200, height: 80 }, { x: 250, y: 470, width: 200, height: 80 }, { x: 500, y: 470, width: 400, height: 80 },
+                { x: 200, y: 370, width: 100, height: 20 }, { x: 380, y: 290, width: 100, height: 20 }, { x: 600, y: 200, width: 140, height: 20 }
+            ],
+            inimigos: [
+                { x: 270, y: 395, width: 65, height: 75, dir: 2.5, minX: 250, maxX: 430, vivo: true, img: "novo" },
+                { x: 620, y: 125, width: 65, height: 75, dir: -3, minX: 600, maxX: 720, vivo: true, img: "novo" }
+            ],
+            batatas: [{ x: 650, y: 150, visivel: true }],
+            metaX: 830, metaY: 390, startX: 50, startY: 300
+        },
+        6: { // Fase 6 - O Confronto Final contra os Chefões (viloes.png)
+            fundo: "fundo.png",
+            plataformas: [
+                { x: 0, y: 470, width: 900, height: 80 },
+                { x: 200, y: 350, width: 150, height: 20 },
+                { x: 550, y: 250, width: 150, height: 20 }
+            ],
+            inimigos: [
+                { x: 600, y: 375, width: 95, height: 95, dir: 2, minX: 500, maxX: 820, vivo: true, img: "chefe" }
+            ],
+            batatas: [{ x: 220, y: 300, visivel: true }],
+            metaX: 830, metaY: 390, startX: 50, startY: 300
         }
     };
 
@@ -129,7 +157,7 @@
         imgRayssa.src = skin;
         document.getElementById("menu").style.display = "none";
         audioTema.play().catch(() => {});
-        jogoVencido = false;
+        estadoJogo = "jogando";
         carregarFase(1);
         loop();
     }
@@ -152,15 +180,24 @@
         batatasAtuais = JSON.parse(JSON.stringify(fases[n].batatas));
     }
 
-    function mover(vel) { if(!jogoVencido) { player.dx = vel; if(vel !== 0) player.viradoEsq = (vel < 0); } }
+    function mover(vel) { if(estadoJogo === "jogando") { player.dx = vel; if(vel !== 0) player.viradoEsq = (vel < 0); } }
     function parar() { player.dx = 0; }
     function pular() { 
-        if (jogoVencido) {
-            jogoVencido = false;
-            carregarFase(1);
+        if (estadoJogo === "transicao") {
+            if (faseAtual < totalFases) {
+                carregarFase(faseAtual + 1);
+                estadoJogo = "jogando";
+            } else {
+                estadoJogo = "vitoria";
+            }
             return;
         }
-        if (player.noChao) { 
+        if (estadoJogo === "vitoria") {
+            carregarFase(1);
+            estadoJogo = "jogando";
+            return;
+        }
+        if (estadoJogo === "jogando" && player.noChao) { 
             player.dy = -13; 
             player.noChao = false; 
             audioPulo.currentTime = 0;
@@ -168,7 +205,7 @@
         } 
     }
 
-    // Configuração dos Botões para Celular
+    // Controles Touch / Mouse
     const setupBtn = (id, onStart, onEnd) => {
         const btn = document.getElementById(id);
         btn.addEventListener('touchstart', (e) => { e.preventDefault(); onStart(); });
@@ -182,7 +219,7 @@
     setupBtn('btnPulo', pular, null);
 
     function loop() {
-        if (!jogoVencido) {
+        if (estadoJogo === "jogando") {
             player.x += player.dx;
             player.dy += gravidade;
             player.y += player.dy;
@@ -226,7 +263,7 @@
                 }
             });
 
-            // Batata
+            // Batata (Power-up)
             batatasAtuais.forEach(b => {
                 if (b.visivel && player.x < b.x + 40 && player.x + player.width > b.x &&
                     player.y < b.y + 40 && player.y + player.height > b.y) {
@@ -239,14 +276,14 @@
                 }
             });
 
-            // Vitória
+            // Meta / Fim da Fase
             let meta = fases[faseAtual];
             if (player.x + player.width > meta.metaX && player.x < meta.metaX + 40 &&
                 player.y + player.height > meta.metaY && player.y < meta.metaY + 80) {
                 if (faseAtual < totalFases) {
-                    carregarFase(faseAtual + 1);
+                    estadoJogo = "transicao"; // Ativa a tela de parabéns por fase
                 } else {
-                    jogoVencido = true; // Ativa a tela de vitória no canvas
+                    estadoJogo = "vitoria"; // Zerou o jogo todo
                 }
             }
         }
@@ -275,15 +312,21 @@
         });
 
         inimigosAtuais.forEach(inimigo => {
-            if (inimigo.vivo && imgInimigo.complete && imgInimigo.naturalWidth !== 0) {
-                ctx.save();
-                if (inimigo.dir < 0) {
-                    ctx.scale(-1, 1);
-                    ctx.drawImage(imgInimigo, -inimigo.x - inimigo.width, inimigo.y, inimigo.width, inimigo.height);
-                } else {
-                    ctx.drawImage(imgInimigo, inimigo.x, inimigo.y, inimigo.width, inimigo.height);
+            if (inimigo.vivo) {
+                let imgAtual = imgInimigoComum;
+                if (inimigo.img === "novo") imgAtual = imgInimigoNovo;
+                if (inimigo.img === "chefe") imgAtual = imgChefe;
+
+                if (imgAtual.complete && imgAtual.naturalWidth !== 0) {
+                    ctx.save();
+                    if (inimigo.dir < 0) {
+                        ctx.scale(-1, 1);
+                        ctx.drawImage(imgAtual, -inimigo.x - inimigo.width, inimigo.y, inimigo.width, inimigo.height);
+                    } else {
+                        ctx.drawImage(imgAtual, inimigo.x, inimigo.y, inimigo.width, inimigo.height);
+                    }
+                    ctx.restore();
                 }
-                ctx.restore();
             }
         });
 
@@ -296,24 +339,44 @@
         }
         ctx.restore();
 
-        // TELA DE VITÓRIA CUSTOMIZADA
-        if (jogoVencido) {
+        // TELA DE TRANSIÇÃO ENTRE FASES
+        if (estadoJogo === "transicao") {
             ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+            ctx.fillRect(0, 0, 900, 550);
+
+            ctx.fillStyle = "#2ecc71";
+            ctx.font = "bold 38px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("🎉 PARABÉNS! 🎉", 450, 190);
+
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "26px sans-serif";
+            ctx.fillText("Você passou da Fase " + faseAtual + "!", 450, 250);
+
+            ctx.fillStyle = "#f1c40f";
+            ctx.font = "bold 20px sans-serif";
+            ctx.fillText("Toque em 'Pular' para ir para a Fase " + (faseAtual + 1), 450, 330);
+            ctx.textAlign = "left";
+        }
+
+        // TELA DE VITÓRIA FINAL
+        if (estadoJogo === "vitoria") {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.9)";
             ctx.fillRect(0, 0, 900, 550);
 
             ctx.fillStyle = "#f1c40f";
             ctx.font = "bold 42px sans-serif";
             ctx.textAlign = "center";
-            ctx.fillText("🏆 PARABÉNS, RAYSSA! 🏆", 450, 200);
+            ctx.fillText("🏆 VITÓRIA ÉPICA, RAYSSA! 🏆", 450, 180);
 
             ctx.fillStyle = "#ffffff";
             ctx.font = "24px sans-serif";
-            ctx.fillText("Você zerou todas as fases!", 450, 260);
+            ctx.fillText("Você derrotou os chefões e zerou todas as fases!", 450, 240);
 
             ctx.fillStyle = "#2ecc71";
             ctx.font = "bold 20px sans-serif";
-            ctx.fillText("Pressione 'Pular' para jogar novamente", 450, 340);
-            ctx.textAlign = "left"; // Reseta alinhamento
+            ctx.fillText("Pressione 'Pular' para jogar novamente", 450, 330);
+            ctx.textAlign = "left";
         }
 
         requestAnimationFrame(loop);
